@@ -82,9 +82,7 @@ class CoppeliaCmd:
 
     def get_needle_pose(self):
         T_w2n = self.get_pose(self.world, self.needle)
-        T_n2n = np.eye(4)
-        T_n2n[:3, :3] = R.from_euler('Z', [np.pi]).as_matrix()
-        return T_w2n @ T_n2n
+        return T_w2n
 
     def pose2T(self, pose):
         T = np.eye(4)
@@ -144,6 +142,56 @@ class CoppeliaCmd:
             q_targ = np.append(q_targ, -q_targ[-1])
         for i in range(7): self.sim.setJointPosition(jhs[i], q_targ[i])
         self.update()
+
+    def open_jaw(self, which='PSM1'):
+        if which == 'PSM1':
+            jhs = self.PSM1_joint_handls
+        elif which == 'PSM2':
+            jhs = self.PSM2_joint_handls
+        q_targ = self.get_joints(which=which)
+        if len(q_targ) != 7:
+            q_targ = np.append(q_targ, -q_targ[-1])
+        q_targ[-1] += np.deg2rad(45)
+        q_targ[-2] += np.deg2rad(45)
+        for i in range(7): self.sim.setJointPosition(jhs[i], q_targ[i])
+        self.update()
+
+    def close_jaw(self, which='PSM1'):
+        if which == 'PSM1':
+            jhs = self.PSM1_joint_handls
+        elif which == 'PSM2':
+            jhs = self.PSM2_joint_handls
+        q_targ = self.get_joints(which=which)
+        if len(q_targ) != 7:
+            q_targ = np.append(q_targ, -q_targ[-1])
+        q_targ[-1] -= np.deg2rad(45)
+        q_targ[-2] -= np.deg2rad(45)
+        for i in range(7): self.sim.setJointPosition(jhs[i], q_targ[i])
+        self.update()
+
+    def set_joint_rel(self, q_targ, which='PSM1', jaw='OPEN'):
+        if which == 'PSM1':
+            jhs = self.PSM1_joint_handls
+        elif which == 'PSM2':
+            jhs = self.PSM2_joint_handls
+        if len(q_targ) != 7:
+            q_targ = np.append(q_targ, -q_targ[-1])
+        reached = False
+        step = 0.25  # 0.1 rad = 5.7 deg
+        threshold = 0.01
+        if jaw == 'OPEN':
+            q_targ[-1] += np.deg2rad(45)
+            q_targ[-2] += np.deg2rad(45)
+        elif jaw == 'CLOSE':
+            q_targ[-1] -= np.deg2rad(45)
+            q_targ[-2] -= np.deg2rad(45)
+        while not reached:
+            q_cur = self.get_joints(which=which)
+            reached = ((q_targ - q_cur) < threshold).all()
+            q_targ_rel = q_cur + (q_targ - q_cur) * step
+            for i in range(7): self.sim.setJointPosition(jhs[i], q_targ_rel[i])
+            self.update()
+
 
     def show_image(self):
         self.img_data = self.get_image()

@@ -156,6 +156,7 @@ class RewardUtils:
 
     ### Sihyeoung edited
     @staticmethod
+    @staticmethod
     def check_collision_ground(T_link1, T_link2, ground_threshold, rb_z):  # [4x4 * 8], [4x4 *8]
         '''
         Returns: True asap if any collision occurs, else False
@@ -164,13 +165,15 @@ class RewardUtils:
         T_link2_z = [T[2, 3] for T in T_link2]
         # 예: ground collision 체크
         for i, z in enumerate(T_link1_z):
-            if z+rb_z < -ground_threshold:
+            # if z+rb_z < -ground_threshold:
+            if z + 0.145 < -ground_threshold:
                 return True
             else:
                 pass
 
         for i, z in enumerate(T_link2_z):
-            if z+rb_z < -ground_threshold:
+            # if z+rb_z < -ground_threshold:
+            if z + 0.145 < -ground_threshold:
                 return True
             else:
                 pass

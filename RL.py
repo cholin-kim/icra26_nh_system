@@ -22,7 +22,7 @@ class Qnet(nn.Module):
         x = self.fc3(x)
         return x
 
-model = "/home/surglab/icra26_nh_system/rl_sth/model/model_97000.pth"
+model = "/home/surglab/icra26_nh_system/rl_sth/model/model_69400.pth"
 
 class RL:
     def __init__(self):
@@ -71,18 +71,3 @@ class RL:
             goal_state=self.goal_state
         )
         return new_state, reward, done, new_needle_pose_w, joint_pos_1, joint_pos_2
-
-
-
-    # def get_w2gp(self, state, last_robot):
-    #     ###
-    #     Tw2gp = np.eye(4)
-    #     if last_robot is not None:
-    #         return Tw2gp
-    #     else:
-    #         if last_robot == 1:
-    #             hand = 'PSM1'
-    #         else:
-    #             hand = 'PSM2'
-    #         return Tw2gp, hand
-

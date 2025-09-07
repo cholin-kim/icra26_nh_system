@@ -68,6 +68,52 @@ class ConfigurationManager:
         # Handover orientation list
         ## needs to be changed if num_ho_plane >= 2
 
+        # if self.num_ho_plane == 1:
+        #     self.ho_ori_lst = np.zeros((self.num_ho_ori, 4, 4))
+        #     assert self.num_ho_ori % 2 == 0
+        #     num_ho_ori_half = int(self.num_ho_ori / 2)
+        #
+        #     angle2 = (2 * np.pi) / num_ho_ori_half
+        #     ho_ori_lst_R = []
+        #     for q in range(num_ho_ori_half):
+        #         ho_ori_lst_R.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
+        #     for q in range(num_ho_ori_half):
+        #         ho_ori_lst_R.append(ho_ori_lst_R[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
+        #     ## tmp
+        #     # for r in range(len(ho_ori_lst_R)):
+        #     #     ho_ori_lst_R[r] = R.from_euler("Y", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[r]
+        #
+        # elif self.num_ho_plane == 2:
+        #     self.ho_ori_lst = np.zeros((self.num_ho_ori, 4, 4))
+        #     assert self.num_ho_ori % 4 == 0
+        #     num_ho_ori_block = int(self.num_ho_ori / 4)
+        #
+        #     angle2 = (2 * np.pi) / num_ho_ori_block
+        #     ho_ori_lst_R = []
+        #     for q in range(num_ho_ori_block):
+        #         ho_ori_lst_R.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
+        #     for q in range(num_ho_ori_block):
+        #         ho_ori_lst_R.append(ho_ori_lst_R[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
+        #     for q in range(len(ho_ori_lst_R)):
+        #         ho_ori_lst_R.append(R.from_euler("Y", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[q])
+        #
+        # elif self.num_ho_plane == 3:
+        #     self.ho_ori_lst = np.zeros((self.num_ho_ori, 4, 4))
+        #     assert self.num_ho_ori % 4 == 0
+        #     num_ho_ori_block = int(self.num_ho_ori / 4)
+        #
+        #     angle2 = (2 * np.pi) / num_ho_ori_block
+        #     ho_ori_lst_R = []
+        #     for q in range(num_ho_ori_block):
+        #         ho_ori_lst_R.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
+        #     for q in range(num_ho_ori_block):
+        #         ho_ori_lst_R.append(ho_ori_lst_R[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
+        #     tmp = len(ho_ori_lst_R)
+        #     for q in range(tmp):
+        #         ho_ori_lst_R.append(R.from_euler("Y", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[q])
+        #     for q in range(tmp):
+        #         ho_ori_lst_R.append(R.from_euler("X", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[q])
+
         if self.num_ho_plane == 1:
             self.ho_ori_lst = np.zeros((self.num_ho_ori, 4, 4))
             assert self.num_ho_ori % 2 == 0
@@ -79,9 +125,7 @@ class ConfigurationManager:
                 ho_ori_lst_R.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
             for q in range(num_ho_ori_half):
                 ho_ori_lst_R.append(ho_ori_lst_R[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
-            ## tmp
-            # for r in range(len(ho_ori_lst_R)):
-            #     ho_ori_lst_R[r] = R.from_euler("Y", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[r]
+
 
         elif self.num_ho_plane == 2:
             self.ho_ori_lst = np.zeros((self.num_ho_ori, 4, 4))
@@ -89,30 +133,17 @@ class ConfigurationManager:
             num_ho_ori_block = int(self.num_ho_ori / 4)
 
             angle2 = (2 * np.pi) / num_ho_ori_block
+            ho_ori_lst_R_tmp = []
             ho_ori_lst_R = []
             for q in range(num_ho_ori_block):
-                ho_ori_lst_R.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
+                ho_ori_lst_R_tmp.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
             for q in range(num_ho_ori_block):
-                ho_ori_lst_R.append(ho_ori_lst_R[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
-            for q in range(len(ho_ori_lst_R)):
-                ho_ori_lst_R.append(R.from_euler("Y", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[q])
+                ho_ori_lst_R_tmp.append(ho_ori_lst_R_tmp[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
 
-        elif self.num_ho_plane == 3:
-            self.ho_ori_lst = np.zeros((self.num_ho_ori, 4, 4))
-            assert self.num_ho_ori % 4 == 0
-            num_ho_ori_block = int(self.num_ho_ori / 4)
-
-            angle2 = (2 * np.pi) / num_ho_ori_block
-            ho_ori_lst_R = []
-            for q in range(num_ho_ori_block):
-                ho_ori_lst_R.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
-            for q in range(num_ho_ori_block):
-                ho_ori_lst_R.append(ho_ori_lst_R[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
-            tmp = len(ho_ori_lst_R)
-            for q in range(tmp):
-                ho_ori_lst_R.append(R.from_euler("Y", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[q])
-            for q in range(tmp):
-                ho_ori_lst_R.append(R.from_euler("X", np.pi/2, degrees=False).as_matrix() @ ho_ori_lst_R[q])
+            for q in range(len(ho_ori_lst_R_tmp)):
+                    ho_ori_lst_R.append(R.from_euler("Y", np.pi/6, degrees=False).as_matrix() @ ho_ori_lst_R_tmp[q])
+            for q in range(len(ho_ori_lst_R_tmp)):
+                ho_ori_lst_R.append(R.from_euler("Y", -np.pi/6, degrees=False).as_matrix() @ ho_ori_lst_R_tmp[q])
 
         self.ho_ori_lst[:, :3, :3] = ho_ori_lst_R
         self.ho_ori_lst[:, 3, 3] = 1

@@ -109,6 +109,7 @@ class StepOrchestrator:
         if num_step == 1:   # Tw_pu, Tw_pu_after
             # rb1, rb2가 아니라, pickup, after the pickup(ho_pos 이동) 으로 Tw_ntarg1, Tw_ntarg2, joint_pos_1, joint_pos_2 결정
             ## after the pickup, use needle orientation(action_unpacked[3:] to get ready for the first handover
+            # Tw_targ1 = Tw_no @ Tno_targ
             Tw_targ1 = Tw_no @ Tno_targ
             Tw_targ2 = Tw_no_new @ Tno_targ
             print("Tw_pickup:\n", Tw_targ1)
@@ -139,7 +140,7 @@ class StepOrchestrator:
 
         else:
             # Tw_giver = Tw_no_new @ self.Tno_targ_prime
-            Tw_giver = Tw_no_new
+            Tw_giver = Tw_no_new @ self.reset.needle_manager.Tno_ntarg(int(state[0]), int(state[1]))
             Tw_receiver = Tw_no_new @ Tno_targ
             if left_to_right:
                 Tw_targ1, Tw_targ2 = Tw_giver, Tw_receiver
@@ -185,7 +186,7 @@ class StepOrchestrator:
         # 7단계: 결과 반환
         if terminated or truncated:
             # return state, reward, True, Tw_no, joint_pos_1, joint_pos_2
-            return new_state, reward, True, Tw_no, joint_pos_1, joint_pos_2
+            return new_state, reward, True, Tw_no_new, joint_pos_1, joint_pos_2
         else:
             # return new_state, reward, False, Tw_no_new_noise, joint_pos_1, joint_pos_2
             return new_state, reward, False, Tw_no_new, joint_pos_1, joint_pos_2
@@ -208,9 +209,15 @@ class StepOrchestrator:
         return int(next_gp), int(next_ga), int(next_gh), int(ho_ori_idx)
 
     def _get_Tw_no(self, ho_ori_idx):
-        T = np.identity(4)
-        Tw_no = T @ self._ho_ori_HO_ORI(ho_ori_idx)
+        Tw_no = self._ho_ori_HO_ORI(ho_ori_idx)
         Tw_no[:3, -1] = self.reset.ho_pos
+        ### world -> cam 되면서 변경.
+        pose_w2cam = np.array([-0.0025006371292415957, 0.18311638869233257, 0.20569533901647974, -0.9063255023394088, 4.0664985549832e-05, 8.5321061260836e-05, -0.42258025850232767])
+        Tw_cam = np.identity(4)
+        Tw_cam[:3, -1] = pose_w2cam[:3]
+        Tw_cam[:3, :3] = R.from_quat(pose_w2cam[3:]).as_matrix()
+        ####
+        Tw_no = np.linalg.inv(Tw_cam) @ Tw_no
         return Tw_no
 
     def _ho_ori_HO_ORI(self, ho_ori_idx):

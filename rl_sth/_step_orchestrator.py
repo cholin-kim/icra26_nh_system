@@ -36,6 +36,7 @@ class StepOrchestrator:
         # self.needle_radius = self.reset.config_manager.needle_radius
         self.Tw_rb1 = self.reset.config_manager.Tw_rb1
         self.Tw_rb2 = self.reset.config_manager.Tw_rb2
+        self.Tw_cam = self.reset.config_manager.Tw_cam
         # self.joint_pos_1 = self.reset.joint_pos_1
         # self.joint_pos_2 = self.reset.joint_pos_2
         # self.state = self.reset.state   # state 0 = [gp, ga, gh, needle_pose(7,)]
@@ -212,12 +213,12 @@ class StepOrchestrator:
         Tw_no = self._ho_ori_HO_ORI(ho_ori_idx)
         Tw_no[:3, -1] = self.reset.ho_pos
         ### world -> cam 되면서 변경.
-        pose_w2cam = np.array([-0.0025006371292415957, 0.18311638869233257, 0.20569533901647974, -0.9063255023394088, 4.0664985549832e-05, 8.5321061260836e-05, -0.42258025850232767])
-        Tw_cam = np.identity(4)
-        Tw_cam[:3, -1] = pose_w2cam[:3]
-        Tw_cam[:3, :3] = R.from_quat(pose_w2cam[3:]).as_matrix()
+        # pose_w2cam = np.array([-0.0025006371292415957, 0.18311638869233257, 0.20569533901647974, -0.9063255023394088, 4.0664985549832e-05, 8.5321061260836e-05, -0.42258025850232767])
+        # Tw_cam = np.identity(4)
+        # Tw_cam[:3, -1] = pose_w2cam[:3]
+        # Tw_cam[:3, :3] = R.from_quat(pose_w2cam[3:]).as_matrix()
         ####
-        Tw_no = np.linalg.inv(Tw_cam) @ Tw_no
+        Tw_no = np.linalg.inv(self.Tw_cam) @ Tw_no
         return Tw_no
 
     def _ho_ori_HO_ORI(self, ho_ori_idx):

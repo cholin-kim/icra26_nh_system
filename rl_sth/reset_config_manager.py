@@ -10,6 +10,7 @@ class ConfigurationManager:
 
         self.Tw_rb1 = env_config['Tw_rb1']
         self.Tw_rb2 = env_config['Tw_rb2']
+        self.Tw_cam = env_config['Tw_cam']
 
         # Grasping parameters
         self.num_gp = env_config['num_gp']

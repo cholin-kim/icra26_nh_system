@@ -3,7 +3,7 @@ import sympy as sp
 
 # from Kinematics import dvrkVar
 from ..Kinematics import dvrkVar
-
+# from rl_sth.Kinematics import dvrkVar
 
 class dvrkKinematics:
     @ classmethod
@@ -190,30 +190,7 @@ if __name__ == "__main__":
     dvrkkin = dvrkKinematics()
     np.set_printoptions(suppress=True, precision=3)
 
-    TW_RB1 = np.identity(4)
-    TW_RB2 = np.identity(4)
 
-    TW_RB1[:3, -1] = np.array([-0.12, 0, 0.20]).T
-    TW_RB2[:3, -1] = np.array([0.12, 0, 0.20]).T
-
-    Tw_targ = np.array([[-0.5 ,     0.86603,  0. ,     -0.012  ],
- [-0.86603, -0.5 ,     0.   ,   -0.02078],
- [ 0.     ,  0.   ,    1.   ,    0.     ],
- [ 0.  ,     0.      , 0.   ,    1.     ]])
-
-    Trb_targ = np.linalg.inv(TW_RB2) @ Tw_targ
-    joint_pos = dvrkkin.ik(Trb_targ)
-
-    # Tw_pickup_after
-    # : [[0.5 - 0.86603  0.       0.012]
-    #    [0.86603  0.5      0.       0.12078]
-    # [0.
-    # 0.
-    # 1.
-    # 0.05]
-    # [0.       0.       0.       1.]]
-
-    print(joint_pos)
     quit()
 
     # 1. random joints

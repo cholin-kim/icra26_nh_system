@@ -19,11 +19,17 @@ TW_RB2 = np.array(
  [-1.89025748e-04, -7.65990523e-01, -6.42851836e-01,  1.82480395e-01],
  [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.00000000e+00]])
 
+Tw_cam = np.identity(4)
+Tw_cam[:3, -1] = [-0.002500001089293032, 0.18311558584962492, 0.9556962954572078]
+from scipy.spatial.transform import Rotation as R
+Tw_cam[:3, :3] = R.from_quat([-0.9063255023394088, 4.0664985549832e-05, 8.5321061260836e-05, -0.42258025850232767]).as_matrix()
+
 
 env_config = {
     # === Robot base transformation matrices ===
     'Tw_rb1': TW_RB1,
     'Tw_rb2': TW_RB2,
+    'Tw_cam': Tw_cam,
 
     # === Grasping parameters ===
     'num_gp': 5,  # grasping points

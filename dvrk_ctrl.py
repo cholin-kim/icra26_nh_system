@@ -1,49 +1,66 @@
+from shutil import which
+
 import crtk
 import numpy as np
 import sys, os
 sys.path.append("/home/surglab/pycharmprojects")
 from dvrk_surglab.motion.psm import psm
+import time
 
+ral = crtk.ral(node_name='dvrkCtrl')
 
-ral = crtk.ral(node_name='asbasd')
-psm1 = psm(ral=ral, arm_name='PSM2')
+class dvrkCmd():
+    def __init__(self):
+        ral.check_connections()
+        ral.spin()
 
-ral.check_connections()
-ral.spin()
+        self.psm1 = psm(ral=ral, arm_name='PSM1')
+        self.psm2 = psm(ral=ral, arm_name='PSM2')
 
-# Status 상태 확인후 Enabled로 바꾸기ㅣ.
-##https://crtk-robotics.readthedocs.io/en/latest/pages/api.html
+        if self.psm1.is_disabled():
+            self.psm1.enable()
+        if self.psm2.is_disabled():
+            self.psm2.enable()
+        # is_homed()
+        # is_busy()
+        self.psm1.jaw.open()
+        self.psm2.jaw.open()
 
-print(psm1.measured_js())
-print(psm1.is_enabled())
-print(psm1.is_busy())
+    def get_joint_positions(self, which='PSM1'):
+        if which == 'PSM1':
+            joint_state = self.psm1.measured_js()
+        elif which == 'PSM2':
+            joint_state = self.psm2.measured_js()
+        return joint_state[0]
 
-print(psm1.is_disabled())
-print(psm1.is_homed())  # homing이 제대로 안됐는데 true 반환함..
-# print(psm1.is_fault()) # 이건 없음.
+    def set_joint_positions_rel(self, q_targ, which='PSM1'):
+        rad_step = 0.02
+        m_step = 0.002
+        rad_threshold = rad_step / 2
+        m_threshold = m_step / 2
+        step = np.array([rad_step, rad_step, m_step, rad_step, rad_step, rad_step])
+        threshold = np.array([rad_threshold, rad_threshold, m_threshold, rad_threshold, rad_threshold, rad_threshold])
 
-# command를 내리기 전 is_busy()를 확인하고 명령 내리면 될듯. 그런데 움직임이 끝났어도 0 속도로 움직이고 있어  busy 일수도 있음..
+        while True:
+            q_cur = self.get_joint_positions(which=which)
+            if (np.abs(q_targ - q_cur) < threshold).all():
+                print("Reached target")
+                break
 
+            diff = q_targ - q_cur
+            q_rel = np.sign(diff) * np.minimum(np.abs(diff), step)
+            if which == 'PSM1':
+                self.psm1.move_jr(q_rel)
+            elif which == 'PSM2':
+                self.psm2.move_jr(q_rel)
+            time.sleep(3)
 
-# import pdb; pdb.set_trace()
-# q_rel = [0.0]*6
-# q_rel[3] = 0.05
-# psm1.move_jp(np.array(q_rel))
-# psm1.disable(10)
-psm1.enable(10)
-# psm1.home(10)
-# psm1.jaw.close()
-# psm1.move_jr(np.array([0.0, 0.0, 0.000, 0.0, 0.0, -0.01])).wait(5)
-# psm1.move_jp(np.array([ 0.60718972, -0.10149449,  0.15 , -0.6740946 ,  0.34115608,
-#         0.39021845])).wait(10)
-
-print(psm1.measured_js())
-# print(psm1.measured_cp())
-
-# /home/surglab/anaconda3/envs/minho/bin/python /home/surglab/pycharmprojects/dvrk_surglab/motion/script/PSM_test.py
-# [[   -0.123967,    0.961798,    0.244083;
-#      -0.89767,   -0.213528,    0.385479;
-#      0.422872,   -0.171319,    0.889848]
-# [   -0.100835,   0.0253161,    0.156177]]
-
-# psm1.move_cp([])
+if __name__ == "__main__":
+    cmd = dvrkCmd()
+    robot1 = 'PSM1'
+    robot2 = 'PSM2'
+    joint_pos1 = cmd.get_joint_positions(which=robot1)
+    print(joint_pos1)
+    targ_joint_pos = joint_pos1 + np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.05])
+    cmd.set_joint_positions_rel(targ_joint_pos, which=robot1)
+    print(cmd.get_joint_positions(which=robot1))

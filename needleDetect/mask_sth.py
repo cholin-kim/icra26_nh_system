@@ -9,22 +9,19 @@ def generate_segment_masks(img, mask):
     segment_ranges: dict { "head": ((low1, low2, low3), (high1, high2, high3)), ... }
     """
     segment_ranges = {
-        # "head": ((0, 0, 59), (255, 37, 101)),
-        "head": ((0, 131, 83), (41, 255, 255)),
-        # "mid": ((0, 0, 124), (255, 80, 255)),
-        "mid": ((29, 21, 98), (255, 41, 255)),
-        # "tip": ((79, 0, 0), (255, 255, 255))
-        "tip": ((29, 78, 156), (255, 255, 224))
+        "head": ((0, 131, 83), (21, 255, 255)),
+        "mid": ((34, 0, 147), (255, 198, 255)),
+        "tip": ((5, 108, 0), (78, 255, 255))
     }
 
     masks = {}
     # img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     for key, (low, high) in segment_ranges.items():
-        # if key == "head":  # BGR 기준
-        #     mask_seg = cv2.inRange(img, low, high)
-        # else:  # HSV 기준
-        mask_seg = cv2.inRange(img_hsv, low, high)
+        if key == "tip":
+            mask_seg = cv2.inRange(img, low, high)
+        else:  # HSV 기준
+            mask_seg = cv2.inRange(img_hsv, low, high)
 
         mask_seg = cv2.bitwise_and(mask, mask_seg)
         mask_seg = _morph_open(mask_seg)

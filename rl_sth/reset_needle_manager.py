@@ -37,4 +37,5 @@ if __name__ == "__main__":
     config_manager = ConfigurationManager(env_config)
     needle_manager = NeedleManager(config_manager)
 
-    print(needle_manager.generate_needle_pose())
+    # print(needle_manager.generate_needle_pose())
+    print(needle_manager.Tno_ntarg(2, 3).tolist())

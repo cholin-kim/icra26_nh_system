@@ -69,8 +69,8 @@ class NeedleDetection:
         mask_head_R, mask_mid_R, mask_tip_R = sub_masks_R["head"], sub_masks_R["mid"], sub_masks_R["tip"]
 
         ## Visualize
-        visualize_mask_segment(mask_head_L, mask_mid_L, mask_tip_L, which='L')
-        visualize_mask_segment(mask_head_R, mask_mid_R, mask_tip_R, which='R')
+        # visualize_mask_segment(mask_head_L, mask_mid_L, mask_tip_L, which='L')
+        # visualize_mask_segment(mask_head_R, mask_mid_R, mask_tip_R, which='R')
 
         # 2
         mask_clustered_L = cluster_mask(mask_L)
@@ -109,8 +109,8 @@ class NeedleDetection:
         samples_head_R, samples_mid_R, samples_tip_R = samples_R[idx_head_R], samples_R[idx_mid_R], samples_R[idx_tip_R]
 
         ## Visualize
-        visualize_subsamples(mask_L, samples_head_L, samples_mid_L, samples_tip_L, which="L")
-        visualize_subsamples(mask_R, samples_head_R, samples_mid_R, samples_tip_R, which="R")
+        # visualize_subsamples(mask_L, samples_head_L, samples_mid_L, samples_tip_L, which="L")
+        # visualize_subsamples(mask_R, samples_head_R, samples_mid_R, samples_tip_R, which="R")
 
         # 7
         # Left rotation
@@ -138,8 +138,8 @@ class NeedleDetection:
                                                                       angle_thresh)
 
         ## Visualize
-        visualize_intersections(mask_L, intersection1_L, intersection2_L, which="L")
-        visualize_intersections(mask_R, intersection1_R, intersection2_R, which="R")
+        # visualize_intersections(mask_L, intersection1_L, intersection2_L, which="L")
+        # visualize_intersections(mask_R, intersection1_R, intersection2_R, which="R")
 
         # 9
         ### Start | Reconstruct Ellipse
@@ -158,10 +158,10 @@ class NeedleDetection:
                                                                reconstruct_pts_R)
 
         ## Visualize
-        visualize_reconstructed_samples(mask_L, ellipse_L, reconstruct_pts_L, head_2d_L, tip_2d_L, intersection1_L,
-                                        intersection2_L, which="L")
-        visualize_reconstructed_samples(mask_R, ellipse_R, reconstruct_pts_R, head_2d_R, tip_2d_R, intersection1_R,
-                                        intersection2_R, which="R")
+        # visualize_reconstructed_samples(mask_L, ellipse_L, reconstruct_pts_L, head_2d_L, tip_2d_L, intersection1_L,
+        #                                 intersection2_L, which="L")
+        # visualize_reconstructed_samples(mask_R, ellipse_R, reconstruct_pts_R, head_2d_R, tip_2d_R, intersection1_R,
+        #                                 intersection2_R, which="R")
 
         if samples_L is None or samples_R is None:
             print("No sampling points")

@@ -45,7 +45,8 @@ class RL:
         self.step_count += 1
         obs_tensor = torch.from_numpy(state.astype(np.float32)).unsqueeze(0).to(device)
         with torch.no_grad():
-            q_values = self.q(obs_tensor).cpu().numpy().squeeze()
+            # q_values = self.q(obs_tensor).cpu().numpy().squeeze()
+            q_values = self.q(obs_tensor).to(torch.float32).cpu().numpy().squeeze()
         action = int(np.argmax(q_values))
         self.prev_action_lst.append(action)
         return action
@@ -62,7 +63,15 @@ class RL:
 
     def step(self, action, state, needle_pose_w):
         action = int(action)
-        new_state, reward, done, new_needle_pose_w, joint_pos_1, joint_pos_2 = self.step_orch.step(
+        # new_state, reward, done, new_needle_pose_w, joint_pos_1, joint_pos_2 = self.step_orch.step(
+        #     action=action,
+        #     state=state,
+        #     Tw_no=needle_pose_w,
+        #     num_step=self.step_count,
+        #     prev_action_lst=self.prev_action_lst,
+        #     goal_state=self.goal_state
+        # )
+        new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2 = self.step_orch.step(
             action=action,
             state=state,
             Tw_no=needle_pose_w,
@@ -70,4 +79,4 @@ class RL:
             prev_action_lst=self.prev_action_lst,
             goal_state=self.goal_state
         )
-        return new_state, reward, done, new_needle_pose_w, joint_pos_1, joint_pos_2
+        return new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2

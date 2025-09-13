@@ -156,7 +156,6 @@ class RewardUtils:
 
     ### Sihyeoung edited
     @staticmethod
-    @staticmethod
     def check_collision_ground(T_link1, T_link2, ground_threshold, rb_z):  # [4x4 * 8], [4x4 *8]
         '''
         Returns: True asap if any collision occurs, else False

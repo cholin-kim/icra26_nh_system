@@ -171,19 +171,14 @@ def main(mode, img):
             break
 
 if __name__ == "__main__":
-    import numpy as np
-    # img = np.load("../data_raw/no_occlusion/loose_to_loose/rgb_0.npy")
-    # img = cv.imread('../Needle/coppeliasim/saved_stereo_images/image_right_20250718_131223_703498.png')
+    img = cv.imread("img_left_1757738755.2436025.jpg")
     # mode = "rgb"
     # main(mode, img)
 
-    # img_L_name = "../NeedleDetection/segment-anything-2-real-time/demo/img_left.jpg"
-    # img_R_name = "../NeedleDetection/segment-anything-2-real-time/demo/raw_img/img_right.jpg"
-    # img_L = cv.imread(img_L_name)
-    # img_R = cv.imread(img_R_name)
-    img_L = cv.imread("img_right.jpg")
+
+
     mode = "hsv"
-    main(mode, img_L)
+    main(mode, img)
 
 
     # from Basler import Basler
@@ -239,6 +234,3 @@ if __name__ == "__main__":
     #         cam_R.stop()
     #         break
 
-"R (0, 0, 59) (255, 37, 101) or (110, 16, 0) (128, 255, 255) hsv"
-"W (0, 0, 124) (255, 80, 255) hsv, 종이 부분 잘라야함."
-"B(79, 0, 0) (255, 255, 255) hsv"

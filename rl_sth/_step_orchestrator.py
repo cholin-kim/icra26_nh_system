@@ -148,8 +148,8 @@ class StepOrchestrator:
             else:
                 Tw_targ1, Tw_targ2 = Tw_receiver, Tw_giver
 
-            print("Tw_targ_l:\n", Tw_targ1)
-            print("Tw_targ_r:\n", Tw_targ2)
+            # print("Tw_targ_l:\n", Tw_targ1)
+            # print("Tw_targ_r:\n", Tw_targ2)
 
             Trb1_ntarg1 = np.linalg.inv(self.Tw_rb1) @ Tw_targ1
             Trb2_ntarg2 = np.linalg.inv(self.Tw_rb2) @ Tw_targ2
@@ -157,8 +157,8 @@ class StepOrchestrator:
 
             joint_pos_1 = self.dvrkkin.ik(Trb1_ntarg1)
             joint_pos_2 = self.dvrkkin.ik(Trb2_ntarg2)
-            print("targ_joint_pos_l:", joint_pos_1)
-            print("targ_joint_pos_r:", joint_pos_2)
+            # print("targ_joint_pos_l:", joint_pos_1)
+            # print("targ_joint_pos_r:", joint_pos_2)
 
             context['joint_pos_1'] = joint_pos_1   # after the action
             context['joint_pos_2'] = joint_pos_2
@@ -184,13 +184,18 @@ class StepOrchestrator:
 
 
 
+        # # 7단계: 결과 반환
+        # if terminated or truncated:
+        #     # return state, reward, True, Tw_no, joint_pos_1, joint_pos_2
+        #     return new_state, reward, True, Tw_no_new, joint_pos_1, joint_pos_2
+        # else:
+        #     # return new_state, reward, False, Tw_no_new_noise, joint_pos_1, joint_pos_2
+        #     return new_state, reward, False, Tw_no_new, joint_pos_1, joint_pos_2
         # 7단계: 결과 반환
         if terminated or truncated:
-            # return state, reward, True, Tw_no, joint_pos_1, joint_pos_2
-            return new_state, reward, True, Tw_no_new, joint_pos_1, joint_pos_2
+            return new_state, reward, True, Tw_no_new, Tw_targ1, Tw_targ2
         else:
-            # return new_state, reward, False, Tw_no_new_noise, joint_pos_1, joint_pos_2
-            return new_state, reward, False, Tw_no_new, joint_pos_1, joint_pos_2
+            return new_state, reward, False, Tw_no_new, Tw_targ1, Tw_targ2
 
     '''
     Step Utils

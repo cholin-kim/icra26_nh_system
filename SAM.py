@@ -50,6 +50,13 @@ class SAM:
 
         
     def point_selector(self, image):
+        # roi_window가 열려있는지 확인 후 없으면 열기
+        if not hasattr(self, 'roi_window'):
+            self.roi_window = "ROI Selector"
+        cv2.namedWindow(self.roi_window)
+        cv2.imshow(self.roi_window, image)
+        cv2.setMouseCallback(self.roi_window, self.on_mouse)
+        cv2.waitKey(1)
         while True:
             self.h, self.w = image.shape[:2]
 

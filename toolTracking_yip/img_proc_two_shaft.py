@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from scipy.spatial.transform import Rotation as R
-from rl_sth.Kinematics.dvrkKinematics import dvrkKinematics
+from Kinematics.dvrkKinematics import dvrkKinematics
 kin = dvrkKinematics()
 
 rvec = np.zeros((3, 1), dtype=np.float32)

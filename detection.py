@@ -31,8 +31,8 @@ class NeedleDetection:
         self.map2_r = np.load("/home/surglab/icra26_nh_system/needleDetect/camera_calibration/map2_r.npy")
 
         self.image_L = self.get_image(which='L')
-        self.sam_L.point_selector(self.image_L)
         self.image_R = self.get_image(which='R')
+        self.sam_L.point_selector(self.image_L)
         self.sam_R.point_selector(self.image_R)
 
         self.P_L = np.load("/home/surglab/icra26_nh_system/needleDetect/camera_calibration/P_L.npy")
@@ -216,6 +216,15 @@ class NeedleDetection:
             img = cv2.remap(img, self.map1_r, self.map2_r, interpolation=cv2.INTER_LINEAR)  # undistorted
         return img
 
+    def close(self):
+        """카메라 리소스 해제"""
+        try:
+            self.camera_L.stop()
+            self.camera_R.stop()
+            print("[NeedleDetection] Cameras stopped and released.")
+        except Exception as e:
+            print(f"[NeedleDetection] Close failed: {e}")
+
 if __name__ == "__main__":
     import sys
     sys.path.append("/home/surglab/icra26_nh_system/segment-anything-2-real-time")
@@ -262,6 +271,10 @@ if __name__ == "__main__":
             overlay_L, overlay_R = visualize_frame_projection(nd.image_L, nd.image_R, needle_pose_w, nd.P_L,
                                                               nd.P_R, points_3d, start_3d, center_3d, end_3d)
             cv2.imshow("Stereo Overlay", ImgUtils.stack_stereo_img(overlay_L, overlay_R, 0.5))
+
         key = cv2.waitKey(1)
         if key == ord('q'):
             cv2.destroyAllWindows()
+        if key == ord('s'):
+            cv2.imwrite("overlay_L.png", overlay_L)
+            cv2.imwrite("overlay_R.png", overlay_R)

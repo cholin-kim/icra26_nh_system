@@ -15,7 +15,7 @@ def flatten_T(T):
     return flattened
 
 
-from rl_sth.Kinematics.dvrkKinematics import dvrkKinematics
+from Kinematics.dvrkKinematics import dvrkKinematics
 
 
 def get_waypoint(joint_pos, distance=0.03):
@@ -26,8 +26,14 @@ def get_waypoint(joint_pos, distance=0.03):
 
 def get_waypoint_T(Trb_targ, distance=0.02):
     Ttarg_targ = np.identity(4)
-    Ttarg_targ[2, -1] = distance
-    return Trb_targ @ Ttarg_targ
+    z_axis = Trb_targ[:3, 2]
+    Trb_targ[:3, 3]
+    pos = Trb_targ[:3, 3]
+    new_pos = pos + z_axis * distance
+
+    T_new = Trb_targ.copy()
+    T_new[:3, 3] = new_pos
+    return T_new
 
 
 def main_coppelia():
@@ -203,301 +209,6 @@ def main_coppelia():
         traceback.print_exc()
 
 
-# def main():
-#     from detection import NeedleDetection
-#     from toolTracking_yip.toolTrack import ToolTracker
-#     from needleDetect.visualize import visualize_needle_3d_live, visualize_frame_projection
-#     from needleDetect.ImgUtils import ImgUtils
-#     from dvrk_ctrl import dvrkCmd
-#     import sys, os
-#     sys.path.append("/home/surglab/icra26_nh_system/segment-anything-2-real-time")
-#     from rl_sth._config import Tcam_rbBlue, Tcam_rbYellow
-#     '''
-#     !! World = Cam !!
-#     '''
-#
-#     cmd = dvrkCmd()
-#     cmd.open_jaw(which='PSM1')
-#     cmd.open_jaw(which='PSM2')
-#     cmd.close_jaw(which='PSM1')
-#     cmd.close_jaw(which='PSM2')
-#     cmd.set_joint_positions_rel(q_targ=    [-1.1489618871934058, -0.30251454649530324, 0.24652427122937667, 4.537986533488359, 0.9035041251062036, 1.0634406215720595], which='PSM2')
-#     cmd.set_joint_positions_rel(q_targ=[0.95748051117905, -0.36057210995014893, 0.20115503666209117, -2.016922407119983, -0.5409441364417912, 0.863487881144485], which='PSM1')
-#
-#
-#
-#     tracker = ToolTracker(Tcam_rbBlue=Tcam_rbBlue, Tcam_rbYellow=Tcam_rbYellow)
-#     n_det = NeedleDetection()
-#     rl = RL()
-#     vis = True
-#
-#     cv2.namedWindow('img_data', cv2.WINDOW_KEEPRATIO)
-#     cv2.resizeWindow('img_data', 1024, 512)
-#
-#     prev_gp = None
-#     prev_go = None
-#     prev_gh = None
-#
-#     if vis:
-#         plt.ion()  # interactive mode 켜기
-#         fig = plt.figure(figsize=(8, 8))
-#         ax = fig.add_subplot(111, projection='3d')
-#
-#     init_flag = True
-#
-#
-#
-#     def update_target_pose(robot, Tw_targ1):
-#         """현재 카메라-로봇 보정을 반영해서 Trb_targ1을 계산"""
-#         TrbBlue_rbBlue, TrbYellow_rbYellow, dbg_img = tracker.step(
-#             img_bgr=n_det.get_image(which='L'),
-#             joint_blue=cmd.get_joint_positions(which='PSM2'),
-#             joint_yellow=cmd.get_joint_positions(which='PSM1'),
-#             jaw_blue=cmd.psm2.jaw.measured_js()[0],
-#             jaw_yellow=cmd.psm1.jaw.measured_js()[0],
-#             visualize=True
-#         )
-#
-#         if robot == 'PSM2':  # Blue
-#             Tcam_rbBlue_corrected = Tcam_rbBlue @ TrbBlue_rbBlue
-#             Trb_targ1 = np.linalg.inv(Tcam_rbBlue_corrected) @ Tw_targ1
-#         elif robot == 'PSM1':  # Yellow
-#             Tcam_rbYellow_corrected = Tcam_rbYellow @ TrbYellow_rbYellow
-#             Trb_targ1 = np.linalg.inv(Tcam_rbYellow_corrected) @ Tw_targ1
-#         else:
-#             raise ValueError(f"Invalid robot: {robot}")
-#         return Trb_targ1, dbg_img
-#
-#     def calc_waypoint_joints(Trb_targ):
-#         """목표 pose 기반으로 prev/target/after waypoint joint 계산"""
-#         Trb_targ1_prev = get_waypoint_T(Trb_targ, distance=0.01)
-#         Trb_targ1_push = get_waypoint_T(Trb_targ, distance=-0.01)
-#         return (
-#             dvrkKinematics.ik(Trb_targ1_prev),
-#             dvrkKinematics.ik(Trb_targ1),
-#             dvrkKinematics.ik(Trb_targ1_push)
-#         )
-#
-#     count = 0
-#     while count < 100:
-#         TrbBlue_rbBlue, TrbYellow_rbYellow, dbg_img = tracker.step(
-#             img_bgr=n_det.get_image(which='L'),
-#             joint_blue=cmd.get_joint_positions(which='PSM2'),
-#             joint_yellow=cmd.get_joint_positions(which='PSM1'),
-#             jaw_blue=cmd.psm2.jaw.measured_js()[0],
-#             jaw_yellow=cmd.psm1.jaw.measured_js()[0],
-#             visualize=True
-#         )
-#         cv2.imshow("tooltrack", dbg_img)
-#         cv2.waitKey(1)
-#         count += 1
-#
-#     Tcam_rbBlue_corrected = Tcam_rbBlue @ TrbBlue_rbBlue
-#     Tcam_rbYellow_corrected = Tcam_rbYellow @ TrbYellow_rbYellow
-#     Tcam_rbBlue = Tcam_rbBlue_corrected
-#     Tcam_rbYellow = Tcam_rbYellow_corrected
-#     tracker = ToolTracker(Tcam_rbBlue=Tcam_rbBlue, Tcam_rbYellow=Tcam_rbYellow)
-#
-#     try:
-#         while True:
-#             needle_detection_res = n_det.get_needle_frame()
-#             if needle_detection_res is None:
-#                 print("needle_pose_w is None")
-#                 continue
-#
-#             # needle_pose_w, _ = needle_detection_res
-#             needle_pose_w, (start_3d, end_3d, points_3d, center_3d) = needle_detection_res
-#             print("needle_pose\n", needle_pose_w.tolist())
-#
-#             if vis:
-#                 visualize_needle_3d_live(ax, needle_pose_w, start_3d, end_3d, points_3d, center_3d)
-#                 overlay_L, overlay_R = visualize_frame_projection(n_det.image_L, n_det.image_R, needle_pose_w,
-#                                                                   n_det.P_L, n_det.P_R, points_3d, start_3d, center_3d,
-#                                                                   end_3d)
-#                 cv2.imshow("Stereo Overlay", ImgUtils.stack_stereo_img(overlay_L, overlay_R, 0.5))
-#                 key = cv2.waitKey(1)
-#                 if key == ord('q'):
-#                     cv2.destroyAllWindows()
-#                     quit()
-#
-#             needle_pose_w_flatten = flatten_T(T=needle_pose_w)  # [x, y, z, qx, qy, qz, qw]
-#             if init_flag:
-#                 state = np.array([-10, -10, -10])
-#                 state = np.append(state, needle_pose_w_flatten)
-#                 init_flag = False
-#             else:
-#                 # state = np.append(gp_state, needle_pose_w_flatten)    # <- 실제로는 detection한 needle pose 사용.
-#                 # tmp
-#                 state = np.append(gp_state, flatten_T(new_needle_pose_w))
-#             print("state:", state)
-#
-#             # inference
-#             action = rl.infer(state)
-#             new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2 = rl.step(action, state, needle_pose_w)
-#             print("reward:", reward)
-#             if reward <= -1:
-#                 print("Reward less than -1")  # exit signal
-#                 # 일단 계속.
-#             #     break
-#
-#             # cmd
-#             if prev_gh is None:
-#                 if int(new_state[2]) == 0:
-#                     robot = 'PSM2'
-#                 elif int(new_state[2]) == 1:
-#                     robot = 'PSM1'
-#                 else:
-#                     print("no robot selected for picking up")
-#                     break
-#
-#                 # ======= 첫 번째 보정 및 waypoint 계산 =======
-#                 Trb_targ1, tool_img = update_target_pose(robot, Tw_targ1)
-#                 joint_pos_1_prev, joint_pos_1, joint_pos_1_push = calc_waypoint_joints(Trb_targ1)
-#                 print("cur_q:", cmd.get_joint_positions(which=robot))
-#                 print("des_q_prev:", joint_pos_1_prev)
-#                 cv2.imshow("Tool Image", tool_img)
-#                 cv2.waitKey(1)  # 화면 새로고침
-#
-#                 keyboard_input = input("1명령 입력 (n 입력 시 set command 실행, q 종료): ")
-#                 if keyboard_input == 'n':
-#                     print("set command 실행 중...")
-#                     cmd.close_jaw(which=robot)
-#                     cmd.set_joint_positions_rel(q_targ=joint_pos_1_prev, which=robot)
-#
-#                     # ======= 두 번째 보정 =======
-#                     Trb_targ1, tool_img = update_target_pose(robot, Tw_targ1)
-#                     joint_pos_1_prev, joint_pos_1, joint_pos_1_push = calc_waypoint_joints(Trb_targ1)
-#                     print("des_q:", joint_pos_1_push)
-#                     cv2.imshow("Tool Image", tool_img)
-#                     cv2.waitKey(1)  # 화면 새로고침
-#                     keyboard_input = input("2명령 입력 (n 입력 시 더 가까이 접근, q 종료): ")
-#                     if keyboard_input == 'n':
-#                         cmd.set_joint_positions_rel(q_targ=joint_pos_1_push, which=robot)
-#                         time.sleep(0.3)
-#                         cmd.open_jaw(which=robot)
-#
-#
-#                         # ======= 세 번째 보정 =======
-#                         Trb_targ1, tool_img = update_target_pose(robot, Tw_targ1)
-#                         joint_pos_1_prev, joint_pos_1, joint_pos_1_push = calc_waypoint_joints(Trb_targ1)
-#                         print("des_q:", joint_pos_1_push)
-#                         cv2.imshow("Tool Image", tool_img)
-#                         cv2.waitKey(1)  # 화면 새로고침
-#                         keyboard_input = input("3명령 입력 close jaw (n 입력 시 close, q 종료): ")
-#                         if keyboard_input == 'n':
-#                             # cmd.set_joint_positions_rel(q_targ=joint_pos_1_push, which=robot)
-#                             # time.sleep(0.3)
-#                             cmd.close_jaw(which=robot)
-#
-#                             # ======= 네 번째 보정 =======
-#                             Trb_targ1, tool_img = update_target_pose(robot, Tw_targ1)
-#                             joint_pos_1_prev, joint_pos_1, joint_pos_1_push = calc_waypoint_joints(Trb_targ1)
-#                             print("des_q:", joint_pos_1_prev)
-#                             cv2.imshow("Tool Image", tool_img)
-#                             cv2.waitKey(1)  # 화면 새로고침
-#                             keyboard_input = input("4명령 입력 pickup (n 입력 시 이동, q 종료): ")
-#                             if keyboard_input == 'n':
-#                                 cmd.set_joint_positions_rel(q_targ=joint_pos_1_prev, which=robot)
-#                             elif keyboard_input == 'q':
-#                                 print("exit command")
-#                                 quit()
-#                         elif keyboard_input == 'q':
-#                             quit()
-#                     elif keyboard_input == 'q':
-#                         quit()
-#
-#                 elif keyboard_input == 'q':
-#                     quit()
-#                 else:
-#                     print("입력 없음 또는 다른 입력 → 종료")
-#                     quit()
-#
-#
-#                 Trb_targ2, tool_img = update_target_pose(robot, Tw_targ1)
-#                 joint_pos_2 = dvrkKinematics.ik(Trb_targ2)
-#                 cv2.imshow("Tool Image", tool_img)
-#                 cv2.waitKey(1)  # 화면 새로고침
-#                 keyboard_input = input("1명령 입력 (n 입력 시 set command 실행, q 종료): ")
-#                 if keyboard_input == 'n':
-#                     print("set command 실행 중...")
-#                     cmd.set_joint_positions_rel(q_targ=joint_pos_2, which=robot)
-#                 elif keyboard_input == 'q':
-#                     quit()
-#                 else:
-#                     quit()
-#
-#                 print("pickup")
-#                 time.sleep(1)
-#
-#
-#             # else:
-#             #     if gp_state[2] == 0 and new_state[2] == 1:
-#             #         left_to_right = True
-#             #         giver_robot = 'PSM1'
-#             #         receiver_robot = 'PSM2'
-#             #     elif gp_state[2] == 1 and new_state[2] == 0:
-#             #         left_to_right = False
-#             #         giver_robot = 'PSM2'
-#             #         receiver_robot = 'PSM1'
-#             #     else:
-#             #         print("Invalid GH occured")  # exit signal
-#             #
-#             #     # cmd
-#             #     if left_to_right:
-#             #         # cmd.set_joint(q_targ=joint_pos_1, which='PSM1')
-#             #         cmd.set_joint_rel(q_targ=joint_pos_1, which='PSM1')
-#             #         # cmd.sim.setObjectPose(cmd.sim.getObject(cmd.needle), flatten_T(new_needle_pose_w).tolist(), cmd.sim.getObject(cmd.world))
-#             #         # cmd.update()
-#             #         print("ready to handover")
-#             #         time.sleep(1)
-#             #         # cmd.set_joint(q_targ=joint_pos_2, which='PSM2')
-#             #         cmd.set_joint_rel(q_targ=joint_pos_2, which='PSM2')
-#             #
-#             #
-#             #         parent = '/PSM2_ee'
-#             #         cmd.sim.setObjectParent(cmd.sim.getObject(cmd.needle), cmd.sim.getObject(parent), True)
-#             #         print("handover finished")
-#             #         time.sleep(5)
-#             #     else:
-#             #         # cmd.sim.setObjectPose(cmd.sim.getObject(cmd.needle), flatten_T(new_needle_pose_w).tolist(), cmd.sim.getObject(cmd.world))
-#             #         # cmd.update()
-#             #         # cmd.set_joint(q_targ=joint_pos_2, which='PSM2')
-#             #         cmd.set_joint_rel(q_targ=joint_pos_2, which='PSM2')
-#             #
-#             #         print("ready to handover")
-#             #         time.sleep(2)
-#             #         # cmd.set_joint(q_targ=joint_pos_1, which='PSM1')
-#             #         cmd.set_joint_rel(q_targ=joint_pos_1, which='PSM1')
-#             #
-#             #
-#             #         parent = '/PSM1_ee'
-#             #         cmd.sim.setObjectParent(cmd.sim.getObject(cmd.needle), cmd.sim.getObject(parent), True)
-#             #         print("handover finished")
-#             #         time.sleep(5)
-#
-#             prev_gh = state[2]
-#             gp_state = new_state[:3]
-#
-#             if done:
-#                 print("Reached the goal")
-#                 quit()
-#
-#     except Exception as e:
-#         import traceback
-#         print(e)
-#         traceback.print_exc()
-
-# def calc_waypoint_joints(Trb_targ):
-#     """목표 pose 기반으로 prev/target/after waypoint joint 계산"""
-#     Trb_targ_prev = get_waypoint_T(Trb_targ, distance=0.01)
-#     Trb_targ_push = get_waypoint_T(Trb_targ, distance=-0.01)
-#     return (
-#         dvrkKinematics.ik(Trb_targ_prev),
-#         dvrkKinematics.ik(Trb_targ),
-#         dvrkKinematics.ik(Trb_targ_push)
-#     )
-
-
 def get_key_input():
     """
     이미지(img)를 띄우면서 화살표키 / WASD / q 입력 대기
@@ -535,7 +246,7 @@ def main():
     from dvrk_ctrl import dvrkCmd
     import sys, os
     sys.path.append("/home/surglab/icra26_nh_system/segment-anything-2-real-time")
-    from rl_sth._config import Tcam_rbBlue, Tcam_rbYellow
+    from DQN_cam._config import Tcam_rbBlue, Tcam_rbYellow
     '''
     !! World = Cam !!
     '''
@@ -546,16 +257,17 @@ def main():
     cmd.open_jaw(which='PSM2')
     cmd.close_jaw(which='PSM1')
     cmd.close_jaw(which='PSM2')
-    cmd.set_joint_positions_rel(q_targ=[-1.0, -0.35, 0.17, 0.0, 0.0, 0.0], which='PSM2')
-    cmd.set_joint_positions_rel(q_targ=[1.0, -0.35, 0.17, 0.0, 0.0, 0.0], which='PSM1')
+    cmd.set_joint_positions_rel(q_targ=[-1.0, -0.35, 0.15, 0.0, 0.0, 0.0], which='PSM2')
+    cmd.set_joint_positions_rel(q_targ=[1.0, -0.35, 0.15, 0.0, 0.0, 0.0], which='PSM1')
+    # quit()
 
 
-    n_det = NeedleDetection()
+    # n_det = NeedleDetection()
     rl = RL()
-    vis = True
+    vis = False
 
-    cv2.namedWindow('img_data', cv2.WINDOW_KEEPRATIO)
-    cv2.resizeWindow('img_data', 1024, 512)
+    # cv2.namedWindow('img_data', cv2.WINDOW_KEEPRATIO)
+    # cv2.resizeWindow('img_data', 1024, 512)
 
     prev_gp = None
     prev_go = None
@@ -568,8 +280,132 @@ def main():
 
     init_flag = True
 
-    try:
-        while True:
+
+    ############
+    # === 로그 설정 ===
+    import os
+    import time
+    import threading
+    import pickle
+
+    # === 로그 폴더 이름을 숫자 카운트 방식으로 ===
+    LOG_ROOT = "./logs"
+    os.makedirs(LOG_ROOT, exist_ok=True)
+
+    # logs 폴더 안의 숫자 폴더 리스트
+    existing_dirs = [d for d in os.listdir(LOG_ROOT) if d.isdigit()]
+    if existing_dirs:
+        run_id = str(max(map(int, existing_dirs)) + 1)
+    else:
+        run_id = "0"
+
+    LOG_DIR = os.path.join(LOG_ROOT, run_id)
+    IMG_DIR = os.path.join(LOG_DIR, "images")
+    os.makedirs(IMG_DIR, exist_ok=True)
+
+    LOG_PATH_PICKLE = os.path.join(LOG_DIR, "experiment_log.pkl")
+
+
+    BACKUP_EVERY = 200  # n 프레임마다 백업
+    LOG_HZ = 20  # 로깅 주기 (Hz)
+    dt = 1.0 / LOG_HZ
+    SAVE_IMAGES = True  # 이미지 파일 저장 여부 (용량 큼)
+    IMAGE_EVERY = 1.0  # 이미지 저장 주기(초)
+
+
+    all_data = []  # 프레임 로그 누적
+    frame_count = 0
+
+    # 메인스레드 <-> 로깅스레드 공유 변수
+    shared = {
+        "state": None,
+        "action": None,
+        "stop": False
+    }
+    last_img_save_t = 0.0
+
+    def backup():
+        # 안전한 백업
+        try:
+            with open(LOG_PATH_PICKLE, "wb") as f:
+                pickle.dump(all_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+            # print(f"[LOG] backup: {len(all_data)} frames -> {LOG_PATH_PICKLE}")
+        except Exception as e:
+            print(f"[LOG] backup failed: {e}")
+
+    def logger_loop(n_det_local):
+        nonlocal frame_count, last_img_save_t
+        while not shared["stop"]:
+            ts = time.time()
+            try:
+                blue_joint = cmd.get_joint_positions(which='PSM2')
+                yellow_joint = cmd.get_joint_positions(which='PSM1')
+                blue_jaw = cmd.psm2.jaw.measured_js()[0]
+                yellow_jaw = cmd.psm1.jaw.measured_js()[0]
+
+                # 최신 이미지 갱신
+                imgL = n_det_local.get_image(which='L')
+                imgR = n_det_local.get_image(which='R')
+
+                imgL_path = imgR_path = None
+                if SAVE_IMAGES and (ts - last_img_save_t) >= IMAGE_EVERY:
+                    if imgL is not None:
+                        imgL_path = os.path.join(IMG_DIR, f"L_{int(ts * 1000)}.jpg")
+                        cv2.imwrite(imgL_path, imgL)
+                    if imgR is not None:
+                        imgR_path = os.path.join(IMG_DIR, f"R_{int(ts * 1000)}.jpg")
+                        cv2.imwrite(imgR_path, imgR)
+                    last_img_save_t = ts
+
+                frame_data = {
+                    "timestamp": ts,
+                    "blue_joint": blue_joint,
+                    "yellow_joint": yellow_joint,
+                    "blue_jaw": blue_jaw,
+                    "yellow_jaw": yellow_jaw,
+                    "state": shared["state"],
+                    "action": shared["action"],
+                    "img_L_path": imgL_path,
+                    "img_R_path": imgR_path,
+                }
+                all_data.append(frame_data)
+                frame_count += 1
+                if frame_count % BACKUP_EVERY == 0:
+                    backup()
+
+            except Exception as e:
+                print(f"[LOGGER] frame capture error: {e}")
+
+            # 로깅 주기 유지
+            sleep_left = dt - (time.time() - ts)
+            if sleep_left > 0:
+                time.sleep(sleep_left)
+
+    while True:
+        n_det = NeedleDetection()
+
+        ##
+        # 로거 시작
+        # shared["stop"] = False
+        # log_thread = threading.Thread(target=logger_loop, args=(n_det,), daemon=True)
+        # log_thread.start()
+        # ##
+
+        # DATA
+        # blue_joint = cmd.get_joint_positions(which='PSM2') or rostopic /PSM2/measured_js
+        # yellow_joint = cmd.get_joint_positions(which='PSM1') or rostopic /PSM1/measured_js
+        # blue_jaw = cmd.psm2.jaw.measured_js()[0] or /PSM2/jaw/measured_js
+        # yellow_jaw = cmd.psm1.jaw.masured_js()[0] or rostopic /PSM1/jaw/measured_js
+
+        # ehdo_L, R = rostopic /dvrk/left/image_raw/compressed
+        # img_L = n_det.image_L
+        # img_R = n_det.image_R
+        # state
+        # action
+
+
+
+        try:
             needle_detection_res = n_det.get_needle_frame()
             if needle_detection_res is None:
                 print("needle_pose_w is None")
@@ -577,6 +413,8 @@ def main():
 
             needle_pose_w, (start_3d, end_3d, points_3d, center_3d) = needle_detection_res
             print("needle_pose\n", needle_pose_w.tolist())
+
+
 
             if vis:
                 visualize_needle_3d_live(ax, needle_pose_w, start_3d, end_3d, points_3d, center_3d)
@@ -595,19 +433,24 @@ def main():
                 state = np.append(state, needle_pose_w_flatten)
                 init_flag = False
             else:
-                # state = np.append(gp_state, needle_pose_w_flatten)    # <- 실제로는 detection한 needle pose 사용.
-                # tmp
-                state = np.append(gp_state, flatten_T(new_needle_pose_w))
+                state = np.append(gp_state, needle_pose_w_flatten)    # <- 실제로는 detection한 needle pose 사용.
             print("state:", state)
+
+            shared["state"] = state
+
 
             # inference
             action = rl.infer(state)
-            new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2 = rl.step(action, state, needle_pose_w)
+            shared["action"] = action
+            new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2, reward_type = rl.step(action, state, needle_pose_w)
             print("reward:", reward)
-            if reward <= -1:
-                print("Reward less than -1")  # exit signal
-                # 일단 계속.
-            #     break
+            if reward < -1:
+                cause = list(reward_type.keys())  # 현재 reward 원인 리스트
+                if 'CollisionStrategy_ground' not in cause:
+                    print("Reward less than -1")  # exit signal
+                    break
+
+
 
             # cmd
             if prev_gh is None:
@@ -652,7 +495,7 @@ def main():
                 #
                 # cmd.set_joint_positions_rel(q_targ=joint_pos_1_prev, which=robot)
 
-                T_targ = get_waypoint_T(cmd.get_ee_pose(which=robot), distance=0.015)
+                T_targ = get_waypoint_T(cmd.get_ee_pose(which=robot), distance=0.01)
                 print(dvrkKinematics.ik(T_targ))
                 keyboard_input = input("1명령 입력 (n 입력 시 set command 실행, q 종료): ")
                 if keyboard_input == 'n':
@@ -674,7 +517,7 @@ def main():
                     print("set command 실행 중...")
                     # cmd.set_joint_positions_rel(q_targ=joint_pos_2, which=robot)
                     cmd.close_jaw(which=robot)
-                    cmd.set_pose(Trb_targ2, which=robot)
+                    cmd.set_pose(Trb_targ2, which=robot)    # joint_rel로 변경?
                 else:
                     quit()
 
@@ -682,50 +525,83 @@ def main():
                 time.sleep(1)
 
 
-            # else:
-            #     if gp_state[2] == 0 and new_state[2] == 1:
-            #         left_to_right = True
-            #         giver_robot = 'PSM1'
-            #         receiver_robot = 'PSM2'
-            #     elif gp_state[2] == 1 and new_state[2] == 0:
-            #         left_to_right = False
-            #         giver_robot = 'PSM2'
-            #         receiver_robot = 'PSM1'
-            #     else:
-            #         print("Invalid GH occured")  # exit signal
-            #
-            #     # cmd
-            #     if left_to_right:
-            #         # cmd.set_joint(q_targ=joint_pos_1, which='PSM1')
-            #         cmd.set_joint_rel(q_targ=joint_pos_1, which='PSM1')
-            #         # cmd.sim.setObjectPose(cmd.sim.getObject(cmd.needle), flatten_T(new_needle_pose_w).tolist(), cmd.sim.getObject(cmd.world))
-            #         # cmd.update()
-            #         print("ready to handover")
-            #         time.sleep(1)
-            #         # cmd.set_joint(q_targ=joint_pos_2, which='PSM2')
-            #         cmd.set_joint_rel(q_targ=joint_pos_2, which='PSM2')
-            #
-            #
-            #         parent = '/PSM2_ee'
-            #         cmd.sim.setObjectParent(cmd.sim.getObject(cmd.needle), cmd.sim.getObject(parent), True)
-            #         print("handover finished")
-            #         time.sleep(5)
-            #     else:
-            #         # cmd.sim.setObjectPose(cmd.sim.getObject(cmd.needle), flatten_T(new_needle_pose_w).tolist(), cmd.sim.getObject(cmd.world))
-            #         # cmd.update()
-            #         # cmd.set_joint(q_targ=joint_pos_2, which='PSM2')
-            #         cmd.set_joint_rel(q_targ=joint_pos_2, which='PSM2')
-            #
-            #         print("ready to handover")
-            #         time.sleep(2)
-            #         # cmd.set_joint(q_targ=joint_pos_1, which='PSM1')
-            #         cmd.set_joint_rel(q_targ=joint_pos_1, which='PSM1')
-            #
-            #
-            #         parent = '/PSM1_ee'
-            #         cmd.sim.setObjectParent(cmd.sim.getObject(cmd.needle), cmd.sim.getObject(parent), True)
-            #         print("handover finished")
-            #         time.sleep(5)
+            else:
+                # Tw_targ1은 psmblue, Tw_targ2 psmyellow always.
+                if gp_state[2] == 0 and new_state[2] == 1:
+                    left_to_right = True
+                    giver_robot = 'PSM2'
+                    receiver_robot = 'PSM1'
+                elif gp_state[2] == 1 and new_state[2] == 0:
+                    left_to_right = False
+                    giver_robot = 'PSM1'
+                    receiver_robot = 'PSM2'
+                else:
+                    print("Invalid GH occured")  # exit signal
+                    quit()
+
+                if left_to_right:
+                     Trb_giver = np.linalg.inv(Tcam_rbBlue) @ Tw_targ1
+                else:
+                    Trb_giver = np.linalg.inv(Tcam_rbYellow) @ Tw_targ2
+
+                # 1. Prepare to Give
+                print("cur_q:", cmd.get_joint_positions(which=giver_robot))
+                print("des_q_prev:", dvrkKinematics.ik(Trb_giver))
+                keyboard_input = input("1명령 입력 (n 입력 시 set command 실행, q 종료): ")
+                if keyboard_input == 'n':
+                    print("set command 실행 중...")
+                    cmd.close_jaw(which=giver_robot)
+                    cmd.set_pose(Trb_giver, which=giver_robot)
+                else:
+                    print("입력 없음 또는 다른 입력 → 종료")
+                    quit()
+
+                # 2. Prepare to Receive
+                if left_to_right:
+                    Trb_receive = np.linalg.inv(Tcam_rbYellow) @ Tw_targ2
+                else:
+                    Trb_receive = np.linalg.inv(Tcam_rbBlue) @ Tw_targ1
+
+                Trb_receive_approach = get_waypoint_T(Trb_receive, distance=0.03)
+                print("receiver_q_cur:", cmd.get_joint_positions(which=receiver_robot))
+                print("receiver_q_des:", dvrkKinematics.ik(Trb_receive_approach))
+                keyboard_input = input("1명령 입력 (n 입력 시 set command 실행, q 종료): ")
+                if keyboard_input == 'n':
+                    cmd.open_jaw(which=receiver_robot)
+                    cmd.set_pose(Trb_receive_approach, which=receiver_robot)
+                else:
+                    print("입력 없음 또는 다른 입력 → 종료")
+                    quit()
+
+
+
+                # 2. Servoing
+                key = get_key_input()
+                while not key == 'QUIT':
+                    cmd.keyboard_servo(key, which=receiver_robot)
+                    key = get_key_input()
+
+                cmd.close_jaw(which=receiver_robot)
+                time.sleep(1)
+
+                keyboard_input = input("1명령 입력 (n 입력 시 giver robot opens jaw, q 종료): ")
+                if keyboard_input == 'n':
+                    cmd.open_jaw(which=giver_robot)
+                else:
+                    print('wrong input')
+                    quit()
+
+                Tgiver_back = cmd.get_ee_pose(which=giver_robot)
+                Tgiver_back = get_waypoint_T(Tgiver_back, distance=0.03)
+                print("giver_q_cur:", cmd.get_joint_positions(which=giver_robot))
+                print("giver_q_des:", dvrkKinematics.ik(Tgiver_back))
+                keyboard_input = input("1명령 입력 (n 입력 시 set command 실행, q 종료): ")
+                if keyboard_input == 'n':
+                    cmd.set_pose(Tgiver_back, which=giver_robot)
+                else:
+                    print('wrong input')
+                    quit()
+
 
             prev_gh = state[2]
             gp_state = new_state[:3]
@@ -734,10 +610,12 @@ def main():
                 print("Reached the goal")
                 quit()
 
-    except Exception as e:
-        import traceback
-        print(e)
-        traceback.print_exc()
+        finally:
+            # 항상 close
+            n_det.close()
+            del n_det
+            print("===== NeedleDetection cycle ended. Restarting... =====")
+
 
 if __name__ == "__main__":
     main()

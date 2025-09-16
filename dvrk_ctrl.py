@@ -5,7 +5,7 @@ sys.path.append("/home/surglab/pycharmprojects")
 from dvrk_surglab.motion.psm import psm
 import time
 import math
-from rl_sth.Kinematics.dvrkKinematics import dvrkKinematics
+from Kinematics.dvrkKinematics import dvrkKinematics
 from scipy.spatial.transform import Rotation as R, Slerp
 
 
@@ -98,7 +98,7 @@ class dvrkCmd():
                 self.psm1.move_jp(q).wait()
             elif which=='PSM2':
                 self.psm2.move_jp(q).wait()
-            time.sleep(0.1)
+            time.sleep(0.04)
 
 
 
@@ -121,19 +121,19 @@ class dvrkCmd():
 
         while True:
             q_cur = self.get_joint_positions(which=which)
-            print("q_cur:", q_cur)
+            # print("q_cur:", q_cur)
             if (np.abs(q_targ - q_cur) < threshold).all():
                 print("Reached target")
                 break
 
             diff = q_targ - q_cur
             q_rel = np.sign(diff) * np.minimum(np.abs(diff), step)
-            print("q_rel:", q_rel)
+            # print("q_rel:", q_rel)
             if which == 'PSM1':
                 self.psm1.move_jr(q_rel).wait()
             elif which == 'PSM2':
                 self.psm2.move_jr(q_rel).wait()
-            time.sleep(0.05)
+            time.sleep(0.01)
 
     def open_jaw(self, which='PSM1', angle=60.0):
         if which == 'PSM1':
@@ -185,25 +185,25 @@ class dvrkCmd():
 
     def right(self, Trb_ee, which='PSM1'):
         Tee_ee = np.identity(4)
-        Tee_ee[0, -1] = 0.002
+        Tee_ee[0, -1] = 0.004
         Trb_ee = Trb_ee @ Tee_ee
         self.set_pose(Trb_ee, which=which)
 
     def left(self, Trb_ee, which='PSM1'):
         Tee_ee = np.identity(4)
-        Tee_ee[0, -1] = -0.002
+        Tee_ee[0, -1] = -0.004
         Trb_ee = Trb_ee @ Tee_ee
         self.set_pose(Trb_ee, which=which)
 
     def forward(self, Trb_ee, which='PSM1'):
         Tee_ee = np.identity(4)
-        Tee_ee[1, -1] = 0.002
+        Tee_ee[1, -1] = 0.004
         Trb_ee = Trb_ee @ Tee_ee
         self.set_pose(Trb_ee, which=which)
 
     def backward(self, Trb_ee, which='PSM1'):
         Tee_ee = np.identity(4)
-        Tee_ee[1, -1] = -0.001
+        Tee_ee[1, -1] = -0.004
         Trb_ee = Trb_ee @ Tee_ee
         self.set_pose(Trb_ee, which=which)
 
@@ -236,15 +236,34 @@ if __name__ == "__main__":
     cmd = dvrkCmd()
     psm_blue = 'PSM2'
     psm_yellow = 'PSM1'
+    cmd.open_jaw(which=psm_yellow)
+    cmd.open_jaw(which=psm_blue)
+    quit()
     # cmd.close_jaw(which=psm_blue)
     # cmd.close_jaw(which=psm_yellow)
-    np.set_printoptions(precision=3, suppress=True)
+    Tcam_rbBlue = np.array(
+        [[0.958227689670898, -0.21768249007965917, -0.18551018371154965, 0.17551387734934729],
+         [-0.09430895426216324, 0.37185710016414775, -0.9234869345061079, -0.17092286002679188],
+         [0.27001021442521606, 0.9024060231238654, 0.33579436197741447, 0.19878618409315504], [0.0, 0.0, 0.0, 1.0]]
+
+    )
+    Tcam_rbYellow = np.array(
+        [[0.9977628695816074, -0.04424886682120791, -0.05011281142896951, -0.1929004230309927],
+         [-0.03362939432434292, 0.3156440822984118, -0.9482815389679223, -0.16374099581128818],
+         [0.057778195901692066, 0.9478453729881434, 0.31344988272978047, 0.14549715406600355], [0.0, 0.0, 0.0, 1.0]]
+    )
     q = cmd.get_joint_positions(which=psm_blue)
-    print(q)
-    print(dvrkKinematics.fk(q)[0][-1])
+    # print(dvrkKinematics.fk(q)[0][-1].tolist())
+    print(Tcam_rbBlue @ dvrkKinematics.fk(q)[0][-1])
+    Tcam_w = np.identity(4)
+    rvec = [2.000704471390556, -0.004855342843570476, -2.9530378153928445]
+    Tcam_w[:3, -1] = [0.005541766210923305, -0.0103154460209131, 0.14533409657221247]
+    Tcam_w[:3, :3] = R.from_euler('XYZ', rvec).as_matrix()
+    Tw_cam = np.linalg.inv(Tcam_w)
+    print(Tw_cam @ Tcam_rbBlue @ dvrkKinematics.fk(q)[0][-1])
     q = cmd.get_joint_positions(which=psm_yellow)
-    print(q)
-    print(dvrkKinematics.fk(q)[0][-1])
+    # print(dvrkKinematics.fk(q)[0][-1].tolist())
+    print(Tcam_rbYellow @ dvrkKinematics.fk(q)[0][-1])
     quit()
     # cmd.open_jaw(which=psm_blue)
 

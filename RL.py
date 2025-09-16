@@ -2,9 +2,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from rl_sth._step_orchestrator import StepOrchestrator
-from rl_sth._reset_orchestrator import ResetOrchestrator
-from rl_sth._config import env_config, step_config
+# from rl_sth._step_orchestrator import StepOrchestrator
+# from rl_sth._reset_orchestrator import ResetOrchestrator
+# from rl_sth._config import env_config, step_config
+###
+from DQN_cam._step_orchestrator_infer import StepOrchestrator
+####
+from DQN_cam._reset_orchestrator import ResetOrchestrator
+from DQN_cam._config import env_config, step_config
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -22,8 +27,8 @@ class Qnet(nn.Module):
         x = self.fc3(x)
         return x
 
-model = "/home/surglab/icra26_nh_system/rl_sth/model/model_69400.pth"
 
+model = "/home/surglab/icra26_nh_system/DQN_cam/data/model_16600.pth"
 class RL:
     def __init__(self):
         self.q = Qnet().to(device)
@@ -58,9 +63,6 @@ class RL:
             done = True
         return done
 
-    def action_interpreter(self, action):
-        pass
-
     def step(self, action, state, needle_pose_w):
         action = int(action)
         # new_state, reward, done, new_needle_pose_w, joint_pos_1, joint_pos_2 = self.step_orch.step(
@@ -71,7 +73,7 @@ class RL:
         #     prev_action_lst=self.prev_action_lst,
         #     goal_state=self.goal_state
         # )
-        new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2 = self.step_orch.step(
+        new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2, reward_type = self.step_orch.step(
             action=action,
             state=state,
             Tw_no=needle_pose_w,
@@ -79,4 +81,4 @@ class RL:
             prev_action_lst=self.prev_action_lst,
             goal_state=self.goal_state
         )
-        return new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2
+        return new_state, reward, done, new_needle_pose_w, Tw_targ1, Tw_targ2, reward_type

@@ -69,34 +69,67 @@ if __name__ == '__main__':
     cam_R.start()
     time.sleep(0.1)
 
-    img_num = 0
 
-    # import os
-    # dir_name = "demo"
-    # if os.path.isdir(dir_name):
-    #     if not os.listdir(dir_name):
-    #         print("Directory is empty")
-    #     else:
-    #         print("Directory is not empty")
-    # else:
-    #     print("Given directory doesn't exist")
-    # quit()
+    import os
+    # === 저장 폴더 설정 ===
+    os.makedirs("frames_left", exist_ok=True)
+    os.makedirs("frames_right", exist_ok=True)
 
-    while True:
-        st = time.time()
-        cv2.namedWindow('img_left', cv2.WINDOW_NORMAL)
-        cv2.namedWindow('img_right', cv2.WINDOW_NORMAL)
-        stacked = ImgUtils.stack_stereo_img(cam_L.image, cam_R.image, scale=0.5)
-        cv2.imshow('stacked', stacked)
-        k = cv2.waitKey(1)
-        if k == ord('s'):
-            cv2.imwrite(f"img_left_{time.time()}.jpg", cam_L.image)
-            cv2.imwrite(f"img_right_{time.time()}.jpg", cam_R.image)
-        if k == ord('q'):
-            cam_L.stop()
-            cam_R.stop()
-            break
+    fps = 20
+    frame_interval = 1.0 / fps
+    frame_idx = 0
+
+    try:
+        while True:
+            start_time = time.time()
+
+            # 프레임 읽기
+            frame_L = cam_L.image
+            frame_R = cam_R.image
+
+            if frame_L is None or frame_R is None:
+                print("Frame not captured.")
+                continue
+
+            # 이미지 저장
+            left_path = f"frames_left/frame_{frame_idx:05d}.jpg"
+            right_path = f"frames_right/frame_{frame_idx:05d}.jpg"
+            cv2.imwrite(left_path, frame_L)
+            cv2.imwrite(right_path, frame_R)
+            print(f"Saved {left_path}, {right_path}")
+
+            frame_idx += 1
+
+            # 미리보기 (옵션)
+            stacked = ImgUtils.stack_stereo_img(frame_L, frame_R, scale=0.5)
+            cv2.imshow('Stereo', stacked)
+
+            key = cv2.waitKey(1)
+            if key == ord('q'):
+                break
+
+            # 20Hz 유지
+            elapsed = time.time() - start_time
+            time.sleep(max(0, frame_interval - elapsed))
+
+    finally:
+        cam_L.stop()
+        cam_R.stop()
+        cv2.destroyAllWindows()
+        print("Image capture finished.")
+
+    # while True:
+    #     st = time.time()
+        # cv2.namedWindow('img_left', cv2.WINDOW_NORMAL)
+        # cv2.namedWindow('img_right', cv2.WINDOW_NORMAL)
+        # stacked = ImgUtils.stack_stereo_img(cam_L.image, cam_R.image, scale=0.5)
+        # cv2.imshow('stacked', stacked)
+        # k = cv2.waitKey(1)
+        # if k == ord('s'):
+        #     cv2.imwrite(f"img_left_{time.time()}.jpg", cam_L.image)
+        #     cv2.imwrite(f"img_right_{time.time()}.jpg", cam_R.image)
+        # if k == ord('q'):
+        #     cam_L.stop()
+        #     cam_R.stop()
+        #     break
         # print (time.time() - st)
-
-        # cv2.imwrite(f"demo/CL/demo3/left_scene_{img_num}.png", cam_L.image)
-        img_num += 1

@@ -1,9 +1,6 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-
-
-
 class ConfigurationManager:
     def __init__(self, env_config):
         self.config = env_config
@@ -87,17 +84,14 @@ class ConfigurationManager:
             num_ho_ori_block = int(self.num_ho_ori / 4)
 
             angle2 = (2 * np.pi) / num_ho_ori_block
-            ho_ori_lst_R_tmp = []
+
             ho_ori_lst_R = []
             for q in range(num_ho_ori_block):
-                ho_ori_lst_R_tmp.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
+                ho_ori_lst_R.append(R.from_euler("Z", angle2 * q, degrees=False).as_matrix())
             for q in range(num_ho_ori_block):
-                ho_ori_lst_R_tmp.append(ho_ori_lst_R_tmp[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
-
-            for q in range(len(ho_ori_lst_R_tmp)):
-                    ho_ori_lst_R.append(R.from_euler("Y", np.pi/6, degrees=False).as_matrix() @ ho_ori_lst_R_tmp[q])
-            for q in range(len(ho_ori_lst_R_tmp)):
-                ho_ori_lst_R.append(R.from_euler("Y", -np.pi/6, degrees=False).as_matrix() @ ho_ori_lst_R_tmp[q])
+                ho_ori_lst_R.append(ho_ori_lst_R[q] @ R.from_euler("Y", np.pi, degrees=False).as_matrix())
+            for q in range(len(ho_ori_lst_R)):
+                ho_ori_lst_R.append(R.from_euler("YX", [np.pi/2, np.pi/4], degrees=False).as_matrix() @ ho_ori_lst_R[q])
 
         #
         # elif self.num_ho_plane == 3:
@@ -121,9 +115,9 @@ class ConfigurationManager:
         self.ho_ori_lst[:, 3, 3] = 1
 
 if __name__ == "__main__":
-    from _config import env_config
+    from DQN_cam._config import env_config
     config_manager = ConfigurationManager(env_config=env_config)
-    from utils_transformation import *
+    from DQN_cam.utils_transformation import *
     import matplotlib.pyplot as plt
 
 

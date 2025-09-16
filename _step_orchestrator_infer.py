@@ -84,7 +84,7 @@ class StepOrchestrator:
 
         new_state = np.array([next_gp, next_ga, next_gh])
         Tw_no_new = self._get_Tw_no(ho_ori_idx)
-        print("Tw_no_new:\n", Tw_no_new)
+        # print("Tw_no_new:\n", Tw_no_new)
 
         Tno_targ = self.reset.needle_manager.Tno_ntarg(next_gp, next_ga)
 
@@ -109,8 +109,8 @@ class StepOrchestrator:
             ## after the pickup, use needle orientation(action_unpacked[3:] to get ready for the first handover
             Tw_targ1 = Tw_no @ Tno_targ # cam 기준
             Tw_targ2 = Tw_no_new @ Tno_targ
-            print("Tw_pickup:\n", Tw_targ1)
-            print("Tw_pickup_after:\n", Tw_targ2)
+            # print("Tw_pickup:\n", Tw_targ1)
+            # print("Tw_pickup_after:\n", Tw_targ2)
 
 
             if action_unpacked[2] == 0: # left arm is picking up
@@ -126,8 +126,8 @@ class StepOrchestrator:
 
             context['joint_pos_1'] = joint_pos_1
             context['joint_pos_2'] = joint_pos_2
-            print("targ_joint_pos_l:", joint_pos_1)
-            print("targ_joint_pos_r:", joint_pos_2)
+            # print("targ_joint_pos_l:", joint_pos_1)
+            # print("targ_joint_pos_r:", joint_pos_2)
 
             last_target = Tw_targ2
 
@@ -136,15 +136,16 @@ class StepOrchestrator:
 
 
         else:
-            Tw_giver = Tw_no_new @ self.Tno_targ_prime
+            # Tw_giver = Tw_no_new @ self.Tno_targ_prime
+            Tw_giver = Tw_no_new @ self.reset.needle_manager.Tno_ntarg(int(state[0]), int(state[1]))
             Tw_receiver = Tw_no_new @ Tno_targ
             if left_to_right:
                 Tw_targ1, Tw_targ2 = Tw_giver, Tw_receiver
             else:
                 Tw_targ1, Tw_targ2 = Tw_receiver, Tw_giver
 
-            print("Tw_targ_l:\n", Tw_targ1)
-            print("Tw_targ_r:\n", Tw_targ2)
+            # print("Tw_targ_l:\n", Tw_targ1)
+            # print("Tw_targ_r:\n", Tw_targ2)
 
             Trb1_ntarg1 = np.linalg.inv(self.Tw_rb1) @ Tw_targ1
             Trb2_ntarg2 = np.linalg.inv(self.Tw_rb2) @ Tw_targ2
@@ -152,8 +153,8 @@ class StepOrchestrator:
 
             joint_pos_1 = self.dvrkkin.ik(Trb1_ntarg1)
             joint_pos_2 = self.dvrkkin.ik(Trb2_ntarg2)
-            print("targ_joint_pos_l:", joint_pos_1)
-            print("targ_joint_pos_r:", joint_pos_2)
+            # print("targ_joint_pos_l:", joint_pos_1)
+            # print("targ_joint_pos_r:", joint_pos_2)
 
             context['joint_pos_1'] = joint_pos_1   # after the action
             context['joint_pos_2'] = joint_pos_2
@@ -163,19 +164,19 @@ class StepOrchestrator:
 
 
 
-        ## add disturbance
-        Tnoise = self._noise(deg=30)
-        Ttarg_prime_no = Tnoise @ np.linalg.inv(Tno_targ)
-        Tw_no_new_noise = last_target @ Ttarg_prime_no
-        self.Tno_targ_prime = np.linalg.inv(Ttarg_prime_no)  # applied after the action
+        # ## add disturbance
+        # Tnoise = self._noise(deg=30)
+        # Ttarg_prime_no = Tnoise @ np.linalg.inv(Tno_targ)
+        # Tw_no_new_noise = last_target @ Ttarg_prime_no
+        # self.Tno_targ_prime = np.linalg.inv(Ttarg_prime_no)  # applied after the action
 
 
         terminated, truncated, reward_type, reward = self.reward_calculator.evaluate(context)
-        print("reward_type:", reward_type)
+        # print("reward_type:", reward_type)
 
-        print("Tw_no_new_noise:\n", Tw_no_new_noise)
-        new_state = np.append(new_state, T_to_pose(Tw_no_new_noise))
-
+        # print("Tw_no_new_noise:\n", Tw_no_new_noise)
+        # new_state = np.append(new_state, T_to_pose(Tw_no_new_noise))
+        new_state = np.append(new_state, T_to_pose(Tw_no_new))
         # Visualization
         # import matplotlib.pyplot as plt
         # ax = visualize_poses([T_to_pose(Tw_targ1), T_to_pose(Tw_targ2)])
@@ -190,9 +191,9 @@ class StepOrchestrator:
 
         # 7단계: 결과 반환
         if terminated or truncated:
-            return state, reward, True, Tw_no, joint_pos_1, joint_pos_2
+            return new_state, reward, True, Tw_no_new, Tw_targ1, Tw_targ2, reward_type
         else:
-            return new_state, reward, False, Tw_no_new_noise, joint_pos_1, joint_pos_2
+            return new_state, reward, False, Tw_no_new, Tw_targ1, Tw_targ2, reward_type
 
     '''
     Step Utils

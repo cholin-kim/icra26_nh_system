@@ -3,7 +3,7 @@ import numpy as np
 import copy
 
 from DQN_cam._reset_orchestrator import ResetOrchestrator
-from DQN_cam._step_orchestrator import StepOrchestrator
+from DQN_cam._step_orchestrator_infer import StepOrchestrator
 
 
 class NeedleHandoverEnv(gym.Env):

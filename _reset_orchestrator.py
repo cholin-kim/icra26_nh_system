@@ -1,6 +1,6 @@
-from reset_config_manager import ConfigurationManager
-from reset_needle_manager import NeedleManager
-from utils_transformation import pose_to_T
+from DQN_cam.reset_config_manager import ConfigurationManager
+from DQN_cam.reset_needle_manager import NeedleManager
+from DQN_cam.utils_transformation import pose_to_T
 import numpy as np
 
 '''
@@ -15,8 +15,8 @@ class ResetOrchestrator:
         self.goal_state= self.config_manager.goal_state
 
         needle_pose = self.needle_manager.generate_needle_pose()
-        # self.Tw_needle = pose_to_T(needle_pose)
-        self.Tc_needle = pose_to_T(needle_pose)
+        self.Tw_needle = pose_to_T(needle_pose)
+        # self.Tc_needle = pose_to_T(needle_pose)
         self.ho_pos = self.config_manager.ho_pos
 
         # set joint position
@@ -33,6 +33,6 @@ class ResetOrchestrator:
 
 
 if __name__ == "__main__":
-    from _config import env_config
+    from DQN_cam._config import env_config
     reset = ResetOrchestrator(env_config=env_config)
     print('s0:', reset.state)

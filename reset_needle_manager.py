@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from utils_transformation import pose_to_T
-from step_utils_reward import RewardUtils
+from DQN_cam.utils_transformation import pose_to_T
+from DQN_cam.step_utils_reward import RewardUtils
 from Kinematics.dvrkKinematics import dvrkKinematics
 
 class NeedleManager:
@@ -32,10 +32,8 @@ class NeedleManager:
 
         while not self._is_feasible(pose):
             # print(pose)
-            # lower_lim = np.array([-0.05, 0.03, 0.0])
-            # upper_lim = np.array([0.05, 0.08, 0.0])
-            lower_lim = np.array([-0.1, 0.0, 0.0])
-            upper_lim = np.array([0.1, 0.15, 0.0])
+            lower_lim = np.array([-0.05, -0.05, 0.0])
+            upper_lim = np.array([0.05, 0.05, 0.0])
             pos = np.random.uniform(lower_lim, upper_lim)
             # Orientation
             # orientation은 z축이 무조건 1 or -1로 고정.
@@ -106,8 +104,8 @@ class NeedleManager:
 
 
 if __name__ == "__main__":
-    from _config import env_config
-    from reset_config_manager import ConfigurationManager
+    from DQN_cam._config import env_config
+    from DQN_cam.reset_config_manager import ConfigurationManager
     config_manager = ConfigurationManager(env_config)
     needle_manager = NeedleManager(config_manager)
 

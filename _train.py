@@ -11,8 +11,8 @@ import torch.optim as optim
 
 
 
-from _config import env_config, step_config, train_cfg
-from _env import NeedleHandoverEnv
+from DQN_cam._config import env_config, step_config, train_cfg
+from DQN_cam._env import NeedleHandoverEnv
 
 np.set_printoptions(precision=5, suppress=True)
 
@@ -206,10 +206,11 @@ def main():
     # Q-networks 초기화
     q = Qnet().to(device)
     q_target = Qnet().to(device)
+    # q_target.load_state_dict(q.state_dict())
     # 이어서 train
-    # model = "data/model_20000.pth"
+    # model = "data/model_28800.pth"
     # q.load_state_dict(torch.load(model, map_location=device))
-    q_target.load_state_dict(q.state_dict())
+    # q_target.load_state_dict(q.state_dict())
 
     memory = ReplayBuffer()
 
@@ -233,7 +234,7 @@ def main():
     optimizer = optim.Adam(q.parameters(), lr=learning_rate)
 
     # 학습 파라미터
-    iter = 100000
+    iter = 200000
     episode_reward_lst = []
     loss_lst = []
     epsilon_lst = []
@@ -317,7 +318,7 @@ def main():
                 # print("loss:", loss)
 
                 # 모델 저장 (best loss 기준)
-                if loss < best_loss and n_epi > 2500:
+                if loss < best_loss and n_epi > 14999:
                     print(f"Best loss: {loss:.4f} at episode: {n_epi}")
                     torch.save(q.state_dict(), data_dir + f'model_{n_epi}.pth')
                     best_loss = loss
@@ -333,7 +334,7 @@ def main():
         writer.add_scalar("Loss", loss, n_epi)
 
         # 주기적 저장 및 target network 업데이트
-        if n_epi % 200 == 0 and n_epi != 0 and n_epi > 1999:
+        if n_epi % 200 == 0 and n_epi != 0 and n_epi > 14999:
             q_target.load_state_dict(q.state_dict())
             print(f"Episode: {n_epi}, Reward: {episode_reward:.2f}, "
                   f"Time: {round((time() - ti) / 60, 1)} min")

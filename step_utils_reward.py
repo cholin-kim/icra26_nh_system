@@ -1,7 +1,7 @@
 import numpy as np
 from Kinematics.dvrkKinematics import dvrkKinematics
 from Kinematics import dvrkVar
-from _config import env_config
+
 # from PPO_v0.step_utils_reward import RewardUtils
 
 dvrkkin = dvrkKinematics()
@@ -162,19 +162,40 @@ class RewardUtils:
         '''
         Returns: True asap if any collision occurs, else False
         '''
-        T_link1_z = [T[2, 3] for T in T_link1]
-        T_link2_z = [T[2, 3] for T in T_link2]
+        Tw_rbBlue = np.array(
+            [[0.9802520146059563, -0.15306224294386117, -0.12521157153377904, 0.20459132220038742],
+             [0.19633964237197382, 0.6777562037508269, 0.7085882253541281, 0.0982052832097201],
+             [-0.02359518370790384, -0.7191790306052185, 0.6944240701786829, 0.13534587287494593], [0.0, 0.0, 0.0, 1.0]]
+        )
+        Tw_rbYellow = np.array(
+            [[0.9996409156045754, 0.025388128640326045, 0.008572209364481182, -0.1670402887138807],
+             [-0.024342826466999787, 0.7266699012864194, 0.6865553738512156, 0.08055558247473343],
+             [0.011201189617347887, -0.6865175143348693, 0.727026984274056, 0.14944659813329178], [0.0, 0.0, 0.0, 1.0]]
+        )
+
+
+        T_link1_new = []
+        T_link2_new = []
+        for T in T_link1:
+            T = Tw_rbBlue @ T
+            T_link1_new.append(T)
+        for T in T_link2:
+            T = Tw_rbYellow @ T
+            T_link2_new.append(T)
+
+        T_link1_z = [T[2, 3] for T in T_link1_new]
+        T_link2_z = [T[2, 3] for T in T_link2_new]
         # 예: ground collision 체크
         for i, z in enumerate(T_link1_z):
             # if z+rb_z < -ground_threshold:
-            if z + 0.145 < -ground_threshold:   # rb, table 사이 길이.
+            if z < -ground_threshold:   # rb, table 사이 길이.
                 return True
             else:
                 pass
 
         for i, z in enumerate(T_link2_z):
             # if z+rb_z < -ground_threshold:
-            if z + 0.145 < -ground_threshold:
+            if z < -ground_threshold:
                 return True
             else:
                 pass
@@ -211,7 +232,7 @@ if __name__ == "__main__":
     from pybullet_collision.obb_vis import collision_pybullet_dual
     pyb = collision_pybullet_dual(headless=False)
     import pybullet as p
-    from _config import env_config
+    from DQN_cam._config import env_config
     Trb1_ree1 = np.linalg.inv(env_config.Tw_rb1) @ Tw_ntarg1
     Trb2_ree2 = np.linalg.inv(env_config.Tw_rb2) @ Tw_ntarg2
     t=0

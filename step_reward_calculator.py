@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-from step_utils_reward import RewardUtils
+from DQN_cam.step_utils_reward import RewardUtils
 from Kinematics.dvrkKinematics import dvrkKinematics as dvrkkin
 from Kinematics import dvrkVar
 
@@ -276,4 +276,5 @@ class RewardCalculator:
             is_violated, reward = strategy.evaluate(context)
             if is_violated:
                 reward_type[strategy.__class__.__name__] = reward
+                total_reward += reward
         return terminated, truncated, reward_type, total_reward

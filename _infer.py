@@ -2,13 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-import torch
-from _train import Qnet
-import glob
-import re
 import json
-
-from _env import NeedleHandoverEnv
 
 
 def load_configs_from_data_dir(data_dir: str):
@@ -97,9 +91,9 @@ def visualize_training_metrics(data_dir: str, show: bool = True, save_path: str 
 
 
 
-# 사용 예시
-if __name__ == "__main__":
 
+if __name__ == "__main__":
+    #
     # # 1. infer for all saved models
     # data_dir = "data/"  # config.json이 있는 경로
     # env_cfg, step_cfg, train_cfg = load_configs_from_data_dir(data_dir)
@@ -114,6 +108,13 @@ if __name__ == "__main__":
     # print(step_cfg)
     # print("\n=== train_config ===")
     # print(train_cfg)
+    # # from _env_infer import NeedleHandoverEnv
+    # from _env import NeedleHandoverEnv
+    # import torch
+    # import glob
+    # import re
+    # from _train import Qnet
+    #
     # env = NeedleHandoverEnv(env_config=env_cfg, step_config=step_cfg)
     #
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -121,15 +122,14 @@ if __name__ == "__main__":
     #
     # model_files = glob.glob(data_dir + "model_*.pth")
     # model_files = sorted(model_files, key=extract_number)
-    # # print("model:", model)
-    # # model_files = ["data/model_70000.pth"]
+    #
     #
     # for model in model_files:
     #     q = Qnet().to(device)
     #     q.load_state_dict(torch.load(model, map_location=device))
     #     q.eval()
     #
-    #     num_episodes = 50
+    #     num_episodes = 300
     #     failure = 0
     #     fjfj0 = 0
     #     fjfj1 = 0
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     #
     #
     #     print("model", model, "failure:", failure, "among", num_episodes, "episodes")
-    # visualize_training_metrics(data_dir, show=True, save_path=None)
+    # # visualize_training_metrics(data_dir, show=True, save_path=None)
 
     import re
 
@@ -192,8 +192,20 @@ if __name__ == "__main__":
     results.sort(key=lambda x: x[1])
 
     # 상위 20개만 출력
-    top20 = results[:20]
+    top20 = results[:10]
 
-    print("Top 20 models with lowest failure:")
+    print("Top 10 models with lowest failure:")
     for model_path, failure, episodes in top20:
         print(f"{model_path} | failure: {failure} / {episodes}")
+
+# Top 10 models with lowest failure:
+# data/model_166600.pth | failure: 1 / 300
+# data/model_84800.pth | failure: 2 / 300
+# data/model_106800.pth | failure: 2 / 300
+# data/model_156400.pth | failure: 2 / 300
+# data/model_158800.pth | failure: 2 / 300
+# data/model_159000.pth | failure: 2 / 300
+# data/model_170200.pth | failure: 2 / 300
+# data/model_172200.pth | failure: 2 / 300
+# data/model_183600.pth | failure: 2 / 300
+# data/model_102200.pth | failure: 3 / 300
